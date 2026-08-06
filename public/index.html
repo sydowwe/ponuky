@@ -533,7 +533,7 @@ function render(){
       ["Výplň",         vr.vypln,false],
       ["Profil",        vr.profil,false],
       ["Povrch. úprava",vr.povrch||"RAL – farba podľa výberu zákazníka – <strong>bez príplatku</strong>",false],
-      ["Posuvné dvere", "bočné s uzamykaním – <strong>bez príplatku</strong>",false],
+      ["Posuvné dvere", vr.model==='Jednokoľajové'?"bočné s uzamykaním – <strong>za príplatok</strong>":"bočné s uzamykaním – <strong>bez príplatku</strong>",false],
       ["Predĺženie dráh",vr.predlzenie||"zadarmo",false],
       ...(vr.extraPopis?[["Príplatok",vr.extraPopis+(vr.extraSuma>0?" – "+fmt(vr.extraSuma):""),false]]:[]),
     ];
