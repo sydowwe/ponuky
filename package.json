@@ -1,0 +1,17 @@
+{
+  "name": "oceanik-ponuky",
+  "version": "1.0.0",
+  "description": "Generátor cenových ponúk Oceanik s ukladaním do PostgreSQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --env-file=.env server.js"
+  },
+  "engines": {
+    "node": ">=20.6"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  }
+}
