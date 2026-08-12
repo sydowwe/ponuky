@@ -312,6 +312,7 @@ const MODELY = ["Klasik","Klasik Lux","Elegance Mini","Elegance","Jednokoľajov�
 const PROFILY = ["štandardný profil 40×50 mm","hrubý profil 65×60 mm"];
 const VYPLN   = ["dutinkový polykarbonát 8 mm s UV vrstvou","číry polykarbonát 4 mm s UV vrstvou"];
 const KONSTRUKCIE = ["2-dielna","3-dielna","4-dielna","5-dielna","6-dielna"];
+const DVERE_JEDNOKOLAJOVE = ["bez dverí","bočné s uzamykaním – za príplatok"];
 const VEC_DEFAULT = "Ponuka na zastrešenie bazéna";
 
 let variants=[], nid=1;
@@ -322,7 +323,8 @@ function defaultVariant(){
     dlzka:"",sirka:"",vyska:"",konstrukcia:"",dlzkasegmentu:"",predlzenie:"zadarmo",
     povrch:"RAL – farba podľa výberu zákazníka – <strong>bez príplatku</strong>",
     cena:0,zlava:0,zlavaTyp:'pct',montaz:0,priplatokEnabled:false,priplatokSuma:0,
-    extraPopis:"",extraSuma:0,doprava:'zadarmo',imgSrc:null};
+    extraPopis:"",extraSuma:0,doprava:'zadarmo',imgSrc:null,
+    dvere:DVERE_JEDNOKOLAJOVE[1],dverePriplatok:0};
 }
 // Doplní chýbajúce polia pri načítaní zo servera (ochrana pri zmene polí medzi verziami).
 function normalizeVariant(v){
@@ -358,8 +360,8 @@ function duplicateV(id){
 
 function upd(id,k,val){
   const v=variants.find(v=>v.id===id);
-  if(v) v[k]=["cena","zlava","montaz","priplatokSuma","extraSuma"].includes(k)?parseFloat(val)||0:val;
-  if(k==="zlavaTyp")renderForm();
+  if(v) v[k]=["cena","zlava","montaz","priplatokSuma","extraSuma","dverePriplatok"].includes(k)?parseFloat(val)||0:val;
+  if(k==="zlavaTyp"||k==="model"||k==="dvere")renderForm();
   render();
 }
 
@@ -380,8 +382,9 @@ function removeImg(id){
 }
 
 function calc(v){
-  const zs=v.zlavaTyp==='eur'?(v.zlava||0):(v.cena*(v.zlava||0)/100),pz=v.cena-zs,pr=(v.priplatokSuma||0)+(v.extraSuma||0),dop=v.doprava==="zadarmo"?0:(v.doprava||0),sb=pz+v.montaz+pr+dop,dph=sb*0.23;
-  return{zs,pz,pr,sb,dph,tot:sb+dph};
+  const dv=(v.model==='Jednokoľajové'&&v.dvere!==DVERE_JEDNOKOLAJOVE[0])?(v.dverePriplatok||0):0;
+  const zs=v.zlavaTyp==='eur'?(v.zlava||0):(v.cena*(v.zlava||0)/100),pz=v.cena-zs,pr=(v.priplatokSuma||0)+(v.extraSuma||0)+dv,dop=v.doprava==="zadarmo"?0:(v.doprava||0),sb=pz+v.montaz+pr+dop,dph=sb*0.23;
+  return{zs,pz,pr,dv,sb,dph,tot:sb+dph};
 }
 function fmt(n){
   if(!n||isNaN(n))return"0,00 €";
@@ -421,6 +424,15 @@ function renderForm(){
         <select onchange="upd(${vr.id},'model',this.value)">
           ${MODELY.map(m=>`<option${m===vr.model?" selected":""}>${m}</option>`).join("")}
         </select></div>
+      ${vr.model==='Jednokoľajové'?`
+      <div class="fi"><label>Posuvné dvere</label>
+        <select onchange="upd(${vr.id},'dvere',this.value)">
+          ${DVERE_JEDNOKOLAJOVE.map(d=>`<option${d===vr.dvere?" selected":""}>${d}</option>`).join("")}
+        </select></div>
+      ${vr.dvere===DVERE_JEDNOKOLAJOVE[1]?`
+      <div class="fi"><label>Príplatok za dvere (€)</label>
+        <input type="number" min="0" step="0.01" value="${vr.dverePriplatok||''}" placeholder="0.00 (nepovinné)"
+          oninput="upd(${vr.id},'dverePriplatok',this.value)"></div>`:""}`:""}
       <div class="fi"><label>Profil</label>
         <select onchange="upd(${vr.id},'profil',this.value)">
           ${PROFILY.map(p=>`<option${p===vr.profil?" selected":""}>${p}</option>`).join("")}
@@ -501,7 +513,8 @@ function renderForm(){
       <div class="fi"><label>Obrázok modelu <span style="color:var(--hint);font-weight:400;font-size:10px">(automatický – voliteľne nahradiť)</span></label>${imgSection}</div>
       <div class="cbox">
         <div class="cr"><span>Cena po zľave</span><span>${fmt(c.pz)}</span></div>
-        ${vr.priplatokSuma>0?`<div class="cr"><span>Príplatok polykarbonát</span><span>+${fmt(c.pr)}</span></div>`:""}
+        ${vr.priplatokSuma>0?`<div class="cr"><span>Príplatok polykarbonát</span><span>+${fmt(vr.priplatokSuma)}</span></div>`:""}
+        ${c.dv>0?`<div class="cr"><span>Príplatok za dvere</span><span>+${fmt(c.dv)}</span></div>`:""}
         ${vr.doprava!=='zadarmo'&&vr.doprava>0?`<div class="cr"><span>Doprava</span><span>+${fmt(vr.doprava)}</span></div>`:""}
         <div class="cr"><span>Spolu bez DPH</span><span>${fmt(c.sb)}</span></div>
         <div class="cr"><span>DPH 23 %</span><span>${fmt(c.dph)}</span></div>
@@ -533,7 +546,9 @@ function render(){
       ["Výplň",         vr.vypln,false],
       ["Profil",        vr.profil,false],
       ["Povrch. úprava",vr.povrch||"RAL – farba podľa výberu zákazníka – <strong>bez príplatku</strong>",false],
-      ["Posuvné dvere", vr.model==='Jednokoľajové'?"bočné s uzamykaním – <strong>za príplatok</strong>":"bočné s uzamykaním – <strong>bez príplatku</strong>",false],
+      ["Posuvné dvere", vr.model==='Jednokoľajové'
+        ?(vr.dvere===DVERE_JEDNOKOLAJOVE[1]?"bočné s uzamykaním – <strong>za príplatok</strong>":"bez dverí")
+        :"bočné s uzamykaním – <strong>bez príplatku</strong>",false],
       ["Predĺženie dráh",vr.predlzenie||"zadarmo",false],
       ...(vr.extraPopis?[["Príplatok",vr.extraPopis+(vr.extraSuma>0?" – "+fmt(vr.extraSuma):""),false]]:[]),
     ];
@@ -545,6 +560,7 @@ function render(){
       <tr><td>Cena po zľave</td><td>${fmt(c.pz)}</td></tr>`:""}
       ${vr.montaz>0?`<tr><td>Montáž</td><td>${fmt(vr.montaz)}</td></tr>`:""}
       ${vr.priplatokSuma>0?`<tr><td>Príplatok za číry polykarbonát</td><td>${fmt(vr.priplatokSuma)}</td></tr>`:""}
+      ${c.dv>0?`<tr><td>Príplatok za dvere</td><td>${fmt(c.dv)}</td></tr>`:""}
       ${vr.extraPopis&&vr.extraSuma>0?`<tr><td>${vr.extraPopis}</td><td>${fmt(vr.extraSuma)}</td></tr>`:""}
       ${vr.doprava==='zadarmo'?`<tr><td>Doprava</td><td class="zad">ZADARMO</td></tr>`:(vr.doprava>0?`<tr><td>Doprava</td><td>${fmt(vr.doprava)}</td></tr>`:"")}
 
