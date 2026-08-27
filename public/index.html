@@ -137,6 +137,11 @@ body.view-list .list-view{display:block}
 .plbl{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--hint);
   margin-bottom:14px;display:flex;align-items:center;gap:10px}
 .plbl::after{content:'';flex:1;height:1px;background:var(--grey-m)}
+.lang-toggle{display:flex;gap:4px;flex:0 0 auto}
+.lang-btn{padding:3px 11px;border-radius:5px;border:1.5px solid var(--grey-m);background:white;
+  font-family:inherit;font-size:10px;font-weight:700;letter-spacing:.5px;cursor:pointer;color:var(--hint)}
+.lang-btn:hover{border-color:var(--blue-m)}
+.lang-btn.active{background:var(--blue);border-color:var(--blue);color:white}
 .ponuka{background:white;max-width:794px;margin:0 auto;box-shadow:0 4px 32px rgba(0,0,0,.13);
   border-radius:4px;overflow:hidden}
 .pnk-hdr{display:grid;grid-template-columns:1fr 1fr}
@@ -275,7 +280,13 @@ body.view-list .list-view{display:block}
   </div>
 </div>
 <div class="preview-panel">
-  <div class="plbl">Náhľad ponuky</div>
+  <div class="plbl">
+    <span>Náhľad ponuky</span>
+    <div class="lang-toggle" id="lang_toggle">
+      <button type="button" class="lang-btn" data-lang="sk" onclick="setOutLang('sk')">SK</button>
+      <button type="button" class="lang-btn" data-lang="en" onclick="setOutLang('en')">EN</button>
+    </div>
+  </div>
   <div id="out"></div>
 </div>
 </div>
@@ -387,15 +398,117 @@ function calc(v){
   return{zs,pz,pr,dv,sb,dph,tot:sb+dph};
 }
 function fmt(n){
-  if(!n||isNaN(n))return"0,00 €";
-  return n.toLocaleString("sk-SK",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
+  if(!n||isNaN(n))return outLang==='en'?"0.00 €":"0,00 €";
+  return n.toLocaleString(outLang==='en'?"en-IE":"sk-SK",{minimumFractionDigits:2,maximumFractionDigits:2})+" €";
 }
 function fmtD(d){
+  if(outLang==='en'){
+    const dt=d?new Date(d+"T00:00:00"):new Date();
+    return dt.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"});
+  }
   if(!d)return new Date().toLocaleDateString("sk-SK");
   const[y,m,dd]=d.split("-");return`${dd}.${m}.${y}`;
 }
 function gv(id){return document.getElementById(id)?.value||"";}
 function escHtml(s){return String(s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ================= Jazyk výstupu (náhľad / tlač / PDF) ================= */
+const OUT_LANG_KEY="oceanik_out_lang";
+let outLang=(function(){ try{return localStorage.getItem(OUT_LANG_KEY)||"sk";}catch(e){return "sk";} })();
+
+const TXT={
+  ponukaTitle:      {sk:"CENOVÁ PONUKA", en:"PRICE QUOTE"},
+  zakaznik:         {sk:"Zákazník", en:"Customer"},
+  cisloPonuky:      {sk:"Číslo ponuky", en:"Quote No."},
+  datum:            {sk:"Dátum", en:"Date"},
+  spracoval:        {sk:"Spracoval/a", en:"Prepared by"},
+  vec:              {sk:"Vec", en:"Subject"},
+  specifikacia:     {sk:"Špecifikácia produktu", en:"Product specification"},
+  pridajVariant:    {sk:"← Pridaj variant v ľavom paneli", en:"← Add a variant in the left panel"},
+  obchPodm:         {sk:"Obchodné podmienky", en:"Terms & conditions"},
+  platnostPonuky:   {sk:"Platnosť ponuky", en:"Quote validity"},
+  terminDodania:    {sk:"Termín dodania", en:"Delivery time"},
+  zavaznostObj:     {sk:"Záväznosť objednávky", en:"Order confirmation"},
+  zavaznostObjVal:  {sk:"Objednávka sa stáva záväznou uhradením zálohovej platby.", en:"The order becomes binding upon payment of the deposit."},
+  zaloha:           {sk:"Záloha", en:"Deposit"},
+  zalohaVal:        {sk:"50 % z celkovej ceny", en:"50% of the total price"},
+  zaruka:           {sk:"Záruka", en:"Warranty"},
+  vyhody:           {sk:"Výhody", en:"Benefits"},
+  doprava:          {sk:"Doprava", en:"Transport"},
+  bezplatnaDoprava: {sk:"Bezplatná doprava", en:"Free transport"},
+  farba:            {sk:"Farba", en:"Color"},
+  vyberFarby:       {sk:"výber farby <strong>bez príplatku</strong>", en:"choice of color <strong>at no extra charge</strong>"},
+  bezpecnost:       {sk:"Bezpečnosť", en:"Security"},
+  uzamPrekrytie:    {sk:"Uzamykateľné prekrytie", en:"Lockable cover"},
+  uzamDvere:        {sk:"Uzamykateľné posuvné dvere", en:"Lockable sliding doors"},
+  bezPriplatku:     {sk:"bez príplatku", en:"at no extra charge"},
+  konstrukcia:      {sk:"Konštrukcia", en:"Construction"},
+  odolnaKonstr:     {sk:"Odolná hliníková konštrukcia", en:"Durable aluminum construction"},
+  polykarbonat:     {sk:"Polykarbonát", en:"Polycarbonate"},
+  kvalitnyPoly:     {sk:"Kvalitný polykarbonát s obojstrannou UV vrstvou", en:"High-quality polycarbonate with UV protection on both sides"},
+  odsuvBazen:       {sk:"Odsuv za bazén", en:"Retraction behind the pool"},
+  predlzenieDrah:   {sk:"Predĺženie dráh", en:"Track extension"},
+  zadarmo:          {sk:"zadarmo", en:"free of charge"},
+  spozdravom:       {sk:"S pozdravom,", en:"Kind regards,"},
+  ico:              {sk:"IČO", en:"Company ID"},
+  icdph:            {sk:"IČ DPH", en:"VAT ID"},
+  dlzka:            {sk:"Dĺžka", en:"Length"},
+  sirka:            {sk:"Šírka", en:"Width"},
+  vyska:            {sk:"Výška", en:"Height"},
+  dlzkaSegmentu:    {sk:"Dĺžka segmentu", en:"Segment length"},
+  vypln:            {sk:"Výplň", en:"Infill"},
+  profil:           {sk:"Profil", en:"Profile"},
+  povrchUprava:     {sk:"Povrch. úprava", en:"Surface finish"},
+  posuvneDvere:     {sk:"Posuvné dvere", en:"Sliding doors"},
+  priplatok:        {sk:"Príplatok", en:"Surcharge"},
+  upresniSa:        {sk:"[ upresní sa ]", en:"[ to be specified ]"},
+  povrchDefault:    {sk:"RAL – farba podľa výberu zákazníka – <strong>bez príplatku</strong>", en:"RAL – color of customer's choice – <strong>at no extra charge</strong>"},
+  dvereBocneZaPripl:  {sk:"bočné s uzamykaním – <strong>za príplatok</strong>", en:"side, lockable – <strong>surcharge applies</strong>"},
+  dvereBocneBezPripl: {sk:"bočné s uzamykaním – <strong>bez príplatku</strong>", en:"side, lockable – <strong>at no extra charge</strong>"},
+  bezDveri:         {sk:"bez dverí", en:"no doors"},
+  cenaBezDph:       {sk:"Cena bez DPH", en:"Price excl. VAT"},
+  zlava:            {sk:"Zľava", en:"Discount"},
+  cenaPoZlave:      {sk:"Cena po zľave", en:"Price after discount"},
+  montaz:           {sk:"Montáž", en:"Installation"},
+  priplatokPoly:    {sk:"Príplatok za číry polykarbonát", en:"Surcharge for clear polycarbonate"},
+  priplatokDvere:   {sk:"Príplatok za dvere", en:"Door surcharge"},
+  zadarmoUpper:     {sk:"ZADARMO", en:"FREE"},
+  platnostDefault:  {sk:"14 dní od dátumu vystavenia", en:"14 days from the date of issue"},
+  terminDefault:    {sk:"cca 12 týždňov od záväznej objednávky", en:"approximately 12 weeks from order"},
+  zarukaDefault:    {sk:"3 roky", en:"3 years"},
+  cenaSpoluBezDph:  {sk:"Cena spolu bez DPH", en:"Total excl. VAT"},
+  dph23:            {sk:"DPH (23 %)", en:"VAT (23%)"},
+  cenaSpoluSDph:    {sk:"CENA SPOLU S DPH", en:"TOTAL INCL. VAT"},
+  polozka:          {sk:"Položka", en:"Item"},
+  suma:             {sk:"Suma", en:"Amount"},
+  variant:          {sk:"VARIANT", en:"VARIANT"},
+};
+function tt(key){ const e=TXT[key]; return e ? (e[outLang]||e.sk) : key; }
+
+const STAV_LABEL_OUT={
+  sk:{nezavazna:"Nezáväzná",akceptovana:"Akceptovaná",dokoncena:"Dokončená"},
+  en:{nezavazna:"Non-binding",akceptovana:"Accepted",dokoncena:"Completed"}
+};
+const PROFIL_EN={
+  "štandardný profil 40×50 mm":"standard profile 40×50 mm",
+  "hrubý profil 65×60 mm":"heavy-duty profile 65×60 mm"
+};
+const VYPLN_EN={
+  "dutinkový polykarbonát 8 mm s UV vrstvou":"multiwall polycarbonate 8 mm with UV layer",
+  "číry polykarbonát 4 mm s UV vrstvou":"clear polycarbonate 4 mm with UV layer"
+};
+const MODEL_EN={
+  "Jednokoľajové":"Single-track"
+};
+function trVal(map,val){ return outLang==='en' ? ((map&&map[val])||val) : val; }
+function trDefault(val,skDefault,key){ return (!val||val===skDefault) ? tt(key) : val; }
+
+function setOutLang(lang){
+  outLang=lang;
+  try{ localStorage.setItem(OUT_LANG_KEY,lang); }catch(e){}
+  document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.dataset.lang===lang));
+  render();
+}
 
 function renderForm(){
   document.getElementById("vlist").innerHTML=variants.map((vr,i)=>{
@@ -532,45 +645,47 @@ function render(){
   const tel=gv("zak_tel")||"[ Telefón ]";
   const email=gv("zak_email")||"[ Email ]";
   const vec=gv("vec")||"[ Predmet ponuky ]";
-  const termin=gv("termin"),platnost=gv("platnost")||"14 dní od dátumu vystavenia",zaruka=gv("zaruka");
+  const termin=trDefault(gv("termin"),"cca 12 týždňov od záväznej objednávky",'terminDefault');
+  const platnost=trDefault(gv("platnost")||"14 dní od dátumu vystavenia","14 dní od dátumu vystavenia",'platnostDefault');
+  const zaruka=trDefault(gv("zaruka"),"3 roky",'zarukaDefault');
   const ico=gv("firma_ico"),web=gv("firma_web"),ichDph=gv("firma_icdph"),adresa=gv("firma_adresa");
 
   const specHTML=variants.map((vr,i)=>{
     const c=calc(vr);
     const rows=[
-      ["Dĺžka",         vr.dlzka||"[ upresní sa ]",false],
-      ["Šírka",         vr.sirka||"[ upresní sa ]",false],
-      ["Výška",         vr.vyska||"[ upresní sa ]",false],
-      ["Konštrukcia",   vr.konstrukcia||"[ upresní sa ]",false],
-      ["Dĺžka segmentu",vr.dlzkasegmentu||"[ upresní sa ]",false],
-      ["Výplň",         vr.vypln,false],
-      ["Profil",        vr.profil,false],
-      ["Povrch. úprava",vr.povrch||"RAL – farba podľa výberu zákazníka – <strong>bez príplatku</strong>",false],
-      ["Posuvné dvere", vr.model==='Jednokoľajové'
-        ?(vr.dvere===DVERE_JEDNOKOLAJOVE[1]?"bočné s uzamykaním – <strong>za príplatok</strong>":"bez dverí")
-        :"bočné s uzamykaním – <strong>bez príplatku</strong>",false],
-      ["Predĺženie dráh",vr.predlzenie||"zadarmo",false],
-      ...(vr.extraPopis?[["Príplatok",vr.extraPopis+(vr.extraSuma>0?" – "+fmt(vr.extraSuma):""),false]]:[]),
+      [tt('dlzka'),         vr.dlzka||tt('upresniSa'),false],
+      [tt('sirka'),         vr.sirka||tt('upresniSa'),false],
+      [tt('vyska'),         vr.vyska||tt('upresniSa'),false],
+      [tt('konstrukcia'),   vr.konstrukcia||tt('upresniSa'),false],
+      [tt('dlzkaSegmentu'), vr.dlzkasegmentu||tt('upresniSa'),false],
+      [tt('vypln'),         trVal(VYPLN_EN,vr.vypln),false],
+      [tt('profil'),        trVal(PROFIL_EN,vr.profil),false],
+      [tt('povrchUprava'),  trDefault(vr.povrch,"RAL – farba podľa výberu zákazníka – <strong>bez príplatku</strong>",'povrchDefault'),false],
+      [tt('posuvneDvere'),  vr.model==='Jednokoľajové'
+        ?(vr.dvere===DVERE_JEDNOKOLAJOVE[1]?tt('dvereBocneZaPripl'):tt('bezDveri'))
+        :tt('dvereBocneBezPripl'),false],
+      [tt('predlzenieDrah'),trDefault(vr.predlzenie,"zadarmo",'zadarmo'),false],
+      ...(vr.extraPopis?[[tt('priplatok'),vr.extraPopis+(vr.extraSuma>0?" – "+fmt(vr.extraSuma):""),false]]:[]),
     ];
     const imgSrc = vr.imgSrc || IMGS[vr.model] || "";
     const imgBlock = imgSrc ? `<div class="mimg"><img src="${imgSrc}" alt="${vr.model}"></div>` : "";
     const priceRows=`
-      <tr><td>Cena bez DPH</td><td>${fmt(vr.cena)}</td></tr>
-      ${vr.zlava>0?`<tr><td>Zľava ${vr.zlava}${vr.zlavaTyp==='pct'?' %':' €'}</td><td>– ${fmt(c.zs)}</td></tr>
-      <tr><td>Cena po zľave</td><td>${fmt(c.pz)}</td></tr>`:""}
-      ${vr.montaz>0?`<tr><td>Montáž</td><td>${fmt(vr.montaz)}</td></tr>`:""}
-      ${vr.priplatokSuma>0?`<tr><td>Príplatok za číry polykarbonát</td><td>${fmt(vr.priplatokSuma)}</td></tr>`:""}
-      ${c.dv>0?`<tr><td>Príplatok za dvere</td><td>${fmt(c.dv)}</td></tr>`:""}
+      <tr><td>${tt('cenaBezDph')}</td><td>${fmt(vr.cena)}</td></tr>
+      ${vr.zlava>0?`<tr><td>${tt('zlava')} ${vr.zlava}${vr.zlavaTyp==='pct'?' %':' €'}</td><td>– ${fmt(c.zs)}</td></tr>
+      <tr><td>${tt('cenaPoZlave')}</td><td>${fmt(c.pz)}</td></tr>`:""}
+      ${vr.montaz>0?`<tr><td>${tt('montaz')}</td><td>${fmt(vr.montaz)}</td></tr>`:""}
+      ${vr.priplatokSuma>0?`<tr><td>${tt('priplatokPoly')}</td><td>${fmt(vr.priplatokSuma)}</td></tr>`:""}
+      ${c.dv>0?`<tr><td>${tt('priplatokDvere')}</td><td>${fmt(c.dv)}</td></tr>`:""}
       ${vr.extraPopis&&vr.extraSuma>0?`<tr><td>${vr.extraPopis}</td><td>${fmt(vr.extraSuma)}</td></tr>`:""}
-      ${vr.doprava==='zadarmo'?`<tr><td>Doprava</td><td class="zad">ZADARMO</td></tr>`:(vr.doprava>0?`<tr><td>Doprava</td><td>${fmt(vr.doprava)}</td></tr>`:"")}
+      ${vr.doprava==='zadarmo'?`<tr><td>${tt('doprava')}</td><td class="zad">${tt('zadarmoUpper')}</td></tr>`:(vr.doprava>0?`<tr><td>${tt('doprava')}</td><td>${fmt(vr.doprava)}</td></tr>`:"")}
 
-      <tr class="rsub"><td>Cena spolu bez DPH</td><td>${fmt(c.sb)}</td></tr>
-      <tr class="rdph"><td>DPH (23 %)</td><td>${fmt(c.dph)}</td></tr>
-      <tr class="rtot"><td>CENA SPOLU S DPH</td><td>${fmt(c.tot)}</td></tr>`;
+      <tr class="rsub"><td>${tt('cenaSpoluBezDph')}</td><td>${fmt(c.sb)}</td></tr>
+      <tr class="rdph"><td>${tt('dph23')}</td><td>${fmt(c.dph)}</td></tr>
+      <tr class="rtot"><td>${tt('cenaSpoluSDph')}</td><td>${fmt(c.tot)}</td></tr>`;
     return`<div class="sv">
       <div class="smtag">
-        <span class="smn">${vr.model}</span>
-        ${variants.length>1?`<span class="svbdg">VARIANT ${i+1}</span>`:""}
+        <span class="smn">${trVal(MODEL_EN,vr.model)}</span>
+        ${variants.length>1?`<span class="svbdg">${tt('variant')} ${i+1}</span>`:""}
       </div>
       <table class="stbl"><tbody>
         ${rows.map(([k,v,g])=>`<tr>
@@ -580,7 +695,7 @@ function render(){
       </tbody></table>
       ${imgBlock}
       <table class="ptbl">
-        <thead><tr><th>Položka</th><th>Suma</th></tr></thead>
+        <thead><tr><th>${tt('polozka')}</th><th>${tt('suma')}</th></tr></thead>
         <tbody>${priceRows}</tbody>
       </table>
     </div>${i<variants.length-1?'<hr class="vsep">':''}`;
@@ -594,60 +709,60 @@ function render(){
         <div style="color:#9bb8d4;font-size:14px;margin-top:5px;font-weight:600;letter-spacing:0.3px">Oceanik s.r.o.</div>
       </div>
       <div class="pnk-hr">
-        <div class="pnk-ttl">CENOVÁ PONUKA</div>
+        <div class="pnk-ttl">${tt('ponukaTitle')}</div>
         <div class="pnk-city">Leopoldov</div>
-        <div class="pnk-stav"><span class="stav-badge ${gv("stav")||"nezavazna"}">${STAV_LABEL[gv("stav")||"nezavazna"]}</span></div>
+        <div class="pnk-stav"><span class="stav-badge ${gv("stav")||"nezavazna"}">${STAV_LABEL_OUT[outLang][gv("stav")||"nezavazna"]}</span></div>
       </div>
     </div>
     <div class="pnk-meta">
       <div>
-        <div class="mlbl">Zákazník</div>
+        <div class="mlbl">${tt('zakaznik')}</div>
         <div class="mval nm">${meno}</div>
         <div class="mval">${adr}</div>
         <div class="mval">${tel}</div>
         <div class="mval">${email}</div>
       </div>
       <div class="mr">
-        <div class="mlbl">Číslo ponuky</div>
+        <div class="mlbl">${tt('cisloPonuky')}</div>
         <div class="mval num">${cislo}</div>
-        <div class="mval" style="margin-top:5px">Dátum: ${datum}</div>
-        <div class="mlbl" style="margin-top:5px">Spracoval/a</div>
+        <div class="mval" style="margin-top:5px">${tt('datum')}: ${datum}</div>
+        <div class="mlbl" style="margin-top:5px">${tt('spracoval')}</div>
         <div class="mval">${sprac}</div>
       </div>
     </div>
     <div class="pnk-body">
-      <div class="vec">Vec: ${vec}</div>
-      <div class="sttl">Špecifikácia produktu</div>
+      <div class="vec">${tt('vec')}: ${vec}</div>
+      <div class="sttl">${tt('specifikacia')}</div>
       ${variants.length===0
-        ?'<p style="color:var(--hint);font-size:12px;padding:10px 0">← Pridaj variant v ľavom paneli</p>'
+        ?`<p style="color:var(--hint);font-size:12px;padding:10px 0">${tt('pridajVariant')}</p>`
         :specHTML}
-      <div class="sttl" style="margin-top:24px">Obchodné podmienky</div>
+      <div class="sttl" style="margin-top:24px">${tt('obchPodm')}</div>
       <table class="podmtbl">
-        <tr><td>Platnosť ponuky</td><td>${platnost}</td></tr>
-        <tr><td>Termín dodania</td><td>${termin}</td></tr>
-        <tr><td>Záväznosť objednávky</td><td>Objednávka sa stáva záväznou uhradením zálohovej platby.</td></tr>
-        <tr><td>Záloha</td><td>50 % z celkovej ceny</td></tr>
-        <tr><td>Záruka</td><td class="porg">${zaruka}</td></tr>
+        <tr><td>${tt('platnostPonuky')}</td><td>${platnost}</td></tr>
+        <tr><td>${tt('terminDodania')}</td><td>${termin}</td></tr>
+        <tr><td>${tt('zavaznostObj')}</td><td>${tt('zavaznostObjVal')}</td></tr>
+        <tr><td>${tt('zaloha')}</td><td>${tt('zalohaVal')}</td></tr>
+        <tr><td>${tt('zaruka')}</td><td class="porg">${zaruka}</td></tr>
       </table>
-      <div class="sttl" style="margin-top:18px">Výhody</div>
+      <div class="sttl" style="margin-top:18px">${tt('vyhody')}</div>
       <table class="atbl">
-        ${variants.length>0&&variants.some(v=>v.doprava==='zadarmo')?`<tr><td>Doprava</td><td>Bezplatná doprava</td></tr>`:""}
-        <tr><td>Farba</td><td>výber farby <strong>bez príplatku</strong></td></tr>
-        <tr><td>Bezpečnosť</td><td>${variants.some(v=>v.model==='Jednokoľajové')?'Uzamykateľné prekrytie':'Uzamykateľné posuvné dvere'} <strong>bez príplatku</strong></td></tr>
-        <tr><td>Konštrukcia</td><td>Odolná hliníková konštrukcia</td></tr>
-        <tr><td>Polykarbonát</td><td>Kvalitný polykarbonát s obojstrannou UV vrstvou</td></tr>
-        <tr><td>Odsuv za bazén</td><td>Predĺženie dráh <strong>zadarmo</strong></td></tr>
+        ${variants.length>0&&variants.some(v=>v.doprava==='zadarmo')?`<tr><td>${tt('doprava')}</td><td>${tt('bezplatnaDoprava')}</td></tr>`:""}
+        <tr><td>${tt('farba')}</td><td>${tt('vyberFarby')}</td></tr>
+        <tr><td>${tt('bezpecnost')}</td><td>${variants.some(v=>v.model==='Jednokoľajové')?tt('uzamPrekrytie'):tt('uzamDvere')} <strong>${tt('bezPriplatku')}</strong></td></tr>
+        <tr><td>${tt('konstrukcia')}</td><td>${tt('odolnaKonstr')}</td></tr>
+        <tr><td>${tt('polykarbonat')}</td><td>${tt('kvalitnyPoly')}</td></tr>
+        <tr><td>${tt('odsuvBazen')}</td><td>${tt('predlzenieDrah')} <strong>${tt('zadarmo')}</strong></td></tr>
       </table>
       <div class="pnk-footer">
         <div>
-          <div style="font-style:italic;color:var(--hint);font-size:11px">S pozdravom,</div>
+          <div style="font-style:italic;color:var(--hint);font-size:11px">${tt('spozdravom')}</div>
           <div class="fn">${sprac}</div>
           <div style="font-size:11px;color:var(--hint);margin-top:3px">sona@oceanik.sk</div>
           <div style="font-size:11px;color:var(--hint)">0907 312 143</div>
         </div>
         <div class="pnk-fr">
-          <div>IČO: ${ico||"53700252"}</div>
-          <div>IČ DPH: ${ichDph||"SK2121478095"}</div>
+          <div>${tt('ico')}: ${ico||"53700252"}</div>
+          <div>${tt('icdph')}: ${ichDph||"SK2121478095"}</div>
           <div style="color:var(--hint)">${adresa||"Trnavská cesta 12, 920 41 Leopoldov"}</div>
           <div style="color:var(--blue)">${web||"www.oceanik.sk"}</div>
         </div>
@@ -901,6 +1016,7 @@ async function changeStav(key,val){
 
 /* ================= Štart ================= */
 document.getElementById("datum").value=new Date().toISOString().slice(0,10);
+document.querySelectorAll('.lang-btn').forEach(b=>b.classList.toggle('active', b.dataset.lang===outLang));
 addV();
 loadList();
 </script>
