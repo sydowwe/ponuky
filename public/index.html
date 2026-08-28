@@ -322,7 +322,7 @@ const IMGS = {
 const MODELY = ["Klasik","Klasik Lux","Elegance Mini","Elegance","Jednokoľajové","Komfort","Praktik","Praktik Plus","Relax"];
 const PROFILY = ["štandardný profil 40×50 mm","hrubý profil 65×60 mm"];
 const VYPLN   = ["dutinkový polykarbonát 8 mm s UV vrstvou","číry polykarbonát 4 mm s UV vrstvou"];
-const KONSTRUKCIE = ["2-dielna","3-dielna","4-dielna","5-dielna","6-dielna"];
+const KONSTRUKCIE = ["2-dielna","3-dielna","4-dielna","5-dielna","6-dielna","7-dielna","8-dielna"];
 const DVERE_JEDNOKOLAJOVE = ["bez dverí","bočné s uzamykaním – za príplatok"];
 const VEC_DEFAULT = "Ponuka na zastrešenie bazéna";
 
@@ -502,6 +502,11 @@ const MODEL_EN={
 };
 function trVal(map,val){ return outLang==='en' ? ((map&&map[val])||val) : val; }
 function trDefault(val,skDefault,key){ return (!val||val===skDefault) ? tt(key) : val; }
+function trKonstrukcia(val){
+  if(outLang!=='en'||!val) return val;
+  const m=val.match(/^(\d+)-dielna$/);
+  return m ? `${m[1]}-section` : val;
+}
 
 function setOutLang(lang){
   outLang=lang;
@@ -656,7 +661,7 @@ function render(){
       [tt('dlzka'),         vr.dlzka||tt('upresniSa'),false],
       [tt('sirka'),         vr.sirka||tt('upresniSa'),false],
       [tt('vyska'),         vr.vyska||tt('upresniSa'),false],
-      [tt('konstrukcia'),   vr.konstrukcia||tt('upresniSa'),false],
+      [tt('konstrukcia'),   vr.konstrukcia?trKonstrukcia(vr.konstrukcia):tt('upresniSa'),false],
       [tt('dlzkaSegmentu'), vr.dlzkasegmentu||tt('upresniSa'),false],
       [tt('vypln'),         trVal(VYPLN_EN,vr.vypln),false],
       [tt('profil'),        trVal(PROFIL_EN,vr.profil),false],
