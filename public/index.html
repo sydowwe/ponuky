@@ -331,7 +331,7 @@ let variants=[], nid=1;
 // Jediné miesto, kde je definovaný tvar variantu.
 function defaultVariant(){
   return {id:0,model:"Klasik Lux",profil:PROFILY[0],vypln:VYPLN[0],
-    dlzka:"",sirka:"",vyska:"",konstrukcia:"",dlzkasegmentu:"",predlzenie:"zadarmo",
+    dlzka:"",sirka:"",vyska:"",konstrukcia:"",dlzkasegmentu:"",predlzenie:"zadarmo",info:"",
     povrch:"RAL – farba podľa výberu zákazníka – <strong>bez príplatku</strong>",
     cena:0,zlava:0,zlavaTyp:'pct',montaz:0,priplatokEnabled:false,priplatokSuma:0,
     extraPopis:"",extraSuma:0,doprava:'zadarmo',imgSrc:null,
@@ -448,6 +448,7 @@ const TXT={
   kvalitnyPoly:     {sk:"Kvalitný polykarbonát s obojstrannou UV vrstvou", en:"High-quality polycarbonate with UV protection on both sides"},
   odsuvBazen:       {sk:"Odsuv za bazén", en:"Retraction behind the pool"},
   predlzenieDrah:   {sk:"Predĺženie dráh", en:"Track extension"},
+  info:             {sk:"Informácia", en:"Info"},
   zadarmo:          {sk:"zadarmo", en:"free of charge"},
   spozdravom:       {sk:"S pozdravom,", en:"Kind regards,"},
   ico:              {sk:"IČO", en:"Company ID"},
@@ -586,6 +587,10 @@ function renderForm(){
         <input type="text" value="${vr.predlzenie||'zadarmo'}"
           placeholder="napr. zadarmo alebo 2 600 mm"
           oninput="upd(${vr.id},'predlzenie',this.value)"></div>
+      <div class="fi"><label>Informácia <span style="color:var(--hint);font-weight:400;font-size:10px">(nepovinné – zobrazí sa vo výstupe len ak je vyplnené)</span></label>
+        <input type="text" value="${vr.info||''}"
+          placeholder="voliteľná poznámka k variantu"
+          oninput="upd(${vr.id},'info',this.value)"></div>
             <div class="fi"><label>Cena bez DPH (€)</label>
           <input type="number" min="0" step="0.01" value="${vr.cena||''}" placeholder="zadaj cenu bez DPH"
             style="width:100%;font-size:14px;font-weight:600"
@@ -671,6 +676,7 @@ function render(){
         :tt('dvereBocneBezPripl'),false],
       [tt('predlzenieDrah'),trDefault(vr.predlzenie,"zadarmo",'zadarmo'),false],
       ...(vr.extraPopis?[[tt('priplatok'),vr.extraPopis+(vr.extraSuma>0?" – "+fmt(vr.extraSuma):""),false]]:[]),
+      ...(vr.info?[[tt('info'),vr.info,false]]:[]),
     ];
     const imgSrc = vr.imgSrc || IMGS[vr.model] || "";
     const imgBlock = imgSrc ? `<div class="mimg"><img src="${imgSrc}" alt="${vr.model}"></div>` : "";
