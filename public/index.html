@@ -171,7 +171,7 @@ body.view-list .list-view{display:block}
   border-bottom:2px solid var(--blue);padding-bottom:5px;margin:12px 0 7px}
 .sv{margin-bottom:10px}
 .smtag{display:flex;align-items:center;gap:10px;margin-bottom:5px}
-.smn{font-size:15px;font-weight:700;color:var(--dark)}
+.smn{font-size:17px;font-weight:700;color:var(--dark)}
 .svbdg{font-size:10px;font-weight:700;color:var(--blue-m);background:var(--blue-l);padding:2px 8px;border-radius:10px}
 .stbl{width:100%;border-collapse:collapse}
 .stbl td{padding:4px 12px;font-size:11px;border:1px solid var(--grey-l)}
@@ -766,7 +766,7 @@ function render(){
   <div class="ponuka pg-next"><div class="pg-in"><div class="pnk-body">${h}</div></div></div>`).join("");
 
   // Výhody → Obchodné podmienky → pätička; umiestnenie rieši layoutPages().
-  trailHTML=`
+  trailParts=[`
     <div class="pnk-body">
       <div class="sttl">${tt('vyhody')}</div>
       <table class="atbl">
@@ -777,7 +777,9 @@ function render(){
         <tr><td>${tt('polykarbonat')}</td><td>${tt('kvalitnyPoly')}</td></tr>
         <tr><td>${tt('odsuvBazen')}</td><td>${tt('predlzenieDrah')} <strong>${tt('zadarmo')}</strong></td></tr>
       </table>
-      <div class="sttl" style="margin-top:18px">${tt('obchPodm')}</div>
+    </div>`,`
+    <div class="pnk-body">
+      <div class="sttl" style="margin-top:12px">${tt('obchPodm')}</div>
       <table class="podmtbl">
         <tr><td>${tt('platnostPonuky')}</td><td>${platnost}</td></tr>
         <tr><td>${tt('terminDodania')}</td><td>${termin}</td></tr>
@@ -799,34 +801,39 @@ function render(){
           <div style="color:var(--blue)">${web||"www.oceanik.sk"}</div>
         </div>
       </div>
-    </div>`;
+    </div>`];
 
   document.getElementById("out").innerHTML=page1+nextPages;
   layoutPages();
 }
 
-let trailHTML="";
+let trailParts=[];             // [Výhody, Obchodné podmienky + pätička]
 const PG_PX=296*96/25.4;       // výška listu A4 (296 mm, 1 mm rezerva proti prázdnej strane)
-const PG_FIT_PX=284*96/25.4;   // Výhody + podmienky sa pridajú na posledný variant len ak sa zmestia sem
+const PG_FIT_PX=290*96/25.4;   // časť sa pridá na posledný variant len ak sa zmestí do tejto výšky
 
-/* Výhody + Obchodné podmienky: ak je za posledným variantom (strana bez hlavičky, 2. a ďalšia) dosť miesta,
-   idú rovno pod neho, inak majú vlastnú stranu. Pri jedinom variante vždy vlastnú stranu. */
+/* Výhody a potom Obchodné podmienky: pri 2+ variantoch sa za posledný variant (strana bez hlavičky) pridá
+   každá časť postupne, kým sa zmestí; zvyšok ide na vlastnú stranu. Pri jedinom variante vždy vlastná strana. */
 function layoutPages(){
   const out=document.getElementById("out"); if(!out) return;
-  out.querySelectorAll("#pg_trail").forEach(e=>e.remove());
-  out.querySelectorAll("#trail_blk").forEach(e=>e.remove());
-  const mk=()=>{ const d=document.createElement("div"); d.id="trail_blk"; d.innerHTML=trailHTML; return d; };
+  out.querySelectorAll("#pg_trail,.trail_blk").forEach(e=>e.remove());
+  const mk=h=>{ const d=document.createElement("div"); d.className="trail_blk"; d.innerHTML=h; return d; };
+  const rest=trailParts.slice();
   const pages=out.querySelectorAll(".ponuka");
   if(pages.length>=2){
     const inn=pages[pages.length-1].querySelector(".pg-in");
-    inn.appendChild(mk());
-    if(inn.offsetHeight+20>PG_FIT_PX) inn.lastChild.remove(); else { markOverflow(); return; }   // +20 = horný odstup listu
+    while(rest.length){
+      const d=mk(rest[0]); inn.appendChild(d);
+      if(inn.offsetHeight+20>PG_FIT_PX){ d.remove(); break; }   // +20 = horný odstup listu
+      rest.shift();
+    }
   }
-  const pg=document.createElement("div");
-  pg.className="ponuka pg-next pg-trail"; pg.id="pg_trail";
-  pg.innerHTML='<div class="pg-in"></div>';
-  pg.firstChild.appendChild(mk());
-  out.appendChild(pg);
+  if(rest.length){
+    const pg=document.createElement("div");
+    pg.className="ponuka pg-next pg-trail"; pg.id="pg_trail";
+    pg.innerHTML='<div class="pg-in"></div>';
+    rest.forEach(h=>pg.firstChild.appendChild(mk(h)));
+    out.appendChild(pg);
+  }
   markOverflow();
 }
 function markOverflow(){
