@@ -146,6 +146,9 @@ body.view-list .list-view{display:block}
   border-radius:4px;overflow:hidden;position:relative}
 /* Čiara konca strany A4 (277 mm obsahu) – len v náhľade, v tlači/PDF sa skrýva */
 .guide{position:absolute;left:0;right:0;border-top:2px dashed #e53935;height:0;z-index:5;pointer-events:none}
+/* Obchodné podmienky vždy začínajú na novej strane (v náhľade ich na hranicu strany posúva .pgfill) */
+.sttl.pg-break{margin-top:0}
+@media print{.pg-break{break-before:page;page-break-before:always}}
 .guide span{position:absolute;right:6px;top:2px;background:#e53935;color:#fff;font-size:10px;font-weight:700;
   padding:2px 7px;border-radius:3px;letter-spacing:.3px}
 .pnk-hdr{display:grid;grid-template-columns:1fr 1fr}
@@ -207,7 +210,7 @@ body.view-list .list-view{display:block}
 .fn{font-weight:700;font-size:13px;color:var(--dark);margin-top:3px}
 @media print{
   body{background:white}
-  .nav,.form-panel,.plbl,.list-view,.pnk-stav,.guide{display:none!important}
+  .nav,.form-panel,.plbl,.list-view,.pnk-stav,.guide,.pgfill{display:none!important}
   .layout{display:block!important}
   .preview-panel{padding:0}
   .ponuka{box-shadow:none;max-width:100%;border-radius:0}
@@ -752,7 +755,7 @@ function render(){
       ${variants.length===0
         ?`<p style="color:var(--hint);font-size:12px;padding:10px 0">${tt('pridajVariant')}</p>`
         :specHTML}
-      <div class="sttl" style="margin-top:24px">${tt('obchPodm')}</div>
+      <div class="sttl pg-break">${tt('obchPodm')}</div>
       <table class="podmtbl">
         <tr><td>${tt('platnostPonuky')}</td><td>${platnost}</td></tr>
         <tr><td>${tt('terminDodania')}</td><td>${termin}</td></tr>
@@ -791,8 +794,19 @@ function render(){
 /* Prerušovaná čiara na konci každej strany A4 (obsah 297 − 2×10 mm = 277 mm) – len pomôcka v náhľade. */
 function addPageGuides(){
   const pn=document.querySelector("#out .ponuka"); if(!pn) return;
-  pn.querySelectorAll(".guide").forEach(g=>g.remove());
-  const pg=277*96/25.4, h=pn.scrollHeight;
+  pn.querySelectorAll(".guide,.pgfill").forEach(g=>g.remove());
+  const pg=277*96/25.4;
+  // Obchodné podmienky začínajú na novej strane – v náhľade ich posunieme na najbližšiu hranicu strany.
+  const brk=pn.querySelector(".pg-break");
+  if(brk){
+    const top=brk.getBoundingClientRect().top-pn.getBoundingClientRect().top;
+    const fill=Math.ceil(top/pg-0.001)*pg-top;
+    if(fill>0.5){
+      const f=document.createElement("div"); f.className="pgfill"; f.style.height=fill+"px";
+      brk.parentNode.insertBefore(f,brk);
+    }
+  }
+  const h=pn.scrollHeight;
   for(let k=1;k*pg<h;k++){
     const g=document.createElement("div");
     g.className="guide"; g.style.top=(k*pg)+"px";
