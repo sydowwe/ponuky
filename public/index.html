@@ -143,43 +143,48 @@ body.view-list .list-view{display:block}
 .lang-btn:hover{border-color:var(--blue-m)}
 .lang-btn.active{background:var(--blue);border-color:var(--blue);color:white}
 .ponuka{background:white;max-width:794px;margin:0 auto;box-shadow:0 4px 32px rgba(0,0,0,.13);
-  border-radius:4px;overflow:hidden}
+  border-radius:4px;overflow:hidden;position:relative}
+/* Čiara konca strany A4 (277 mm obsahu) – len v náhľade, v tlači/PDF sa skrýva */
+.guide{position:absolute;left:0;right:0;border-top:2px dashed #e53935;height:0;z-index:5;pointer-events:none}
+.guide span{position:absolute;right:6px;top:2px;background:#e53935;color:#fff;font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:3px;letter-spacing:.3px}
 .pnk-hdr{display:grid;grid-template-columns:1fr 1fr}
-.pnk-hl{background:var(--blue-d);padding:18px 24px;display:flex;flex-direction:column;justify-content:center}
-.pnk-hr{background:var(--blue-l);padding:18px 24px;text-align:right;display:flex;flex-direction:column;justify-content:center}
-.pnk-logo{height:38px;object-fit:contain;object-position:left;filter:brightness(0) invert(1)}
+.pnk-hl{background:var(--blue-d);padding:10px 24px;display:flex;flex-direction:column;justify-content:center}
+.pnk-hr{background:var(--blue-l);padding:10px 24px;text-align:right;display:flex;flex-direction:column;justify-content:center}
+.pnk-logo{height:30px;object-fit:contain;object-position:left;filter:brightness(0) invert(1)}
 .pnk-sub{font-size:10px;color:#9bb8d4;margin-top:4px;font-style:italic}
-.pnk-ttl{font-size:26px;font-weight:700;color:var(--blue)}
+.pnk-ttl{font-size:22px;font-weight:700;color:var(--blue)}
 .pnk-city{font-size:13px;color:var(--hint);margin-top:3px;font-style:italic}
-.pnk-meta{display:grid;grid-template-columns:1fr 1fr;background:#F9FBFE;padding:16px 24px}
+.pnk-meta{display:grid;grid-template-columns:1fr 1fr;background:#F9FBFE;padding:8px 24px}
 .mlbl{font-size:11px;color:var(--hint);font-weight:700;text-transform:uppercase;letter-spacing:.8px}
 .mval{font-size:13px;color:var(--dark);margin-top:2px;line-height:1.55}
 .mval.nm{font-size:17px;font-weight:700;color:var(--orange)}
 .mval.num{font-size:16px;font-weight:700;color:var(--blue)}
 .mr{text-align:right}
-.pnk-body{padding:20px 24px}
-.vec{background:var(--blue-l);border-left:4px solid var(--blue);padding:10px 14px;
-  margin:12px 0;font-size:12px;font-weight:600;color:var(--orange)}
+.pnk-body{padding:10px 24px 18px}
+.vec{background:var(--blue-l);border-left:4px solid var(--blue);padding:7px 14px;
+  margin:8px 0;font-size:12px;font-weight:600;color:var(--orange)}
 .sttl{font-size:10px;font-weight:700;color:var(--blue);letter-spacing:1.2px;text-transform:uppercase;
-  border-bottom:2px solid var(--blue);padding-bottom:5px;margin:18px 0 10px}
-.sv{margin-bottom:18px}
-.smtag{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+  border-bottom:2px solid var(--blue);padding-bottom:5px;margin:12px 0 7px}
+.sv{margin-bottom:10px}
+.smtag{display:flex;align-items:center;gap:10px;margin-bottom:5px}
 .smn{font-size:15px;font-weight:700;color:var(--dark)}
 .svbdg{font-size:10px;font-weight:700;color:var(--blue-m);background:var(--blue-l);padding:2px 8px;border-radius:10px}
 .stbl{width:100%;border-collapse:collapse}
-.stbl td{padding:6px 12px;font-size:11px;border:1px solid var(--grey-l)}
+.stbl td{padding:4px 12px;font-size:11px;border:1px solid var(--grey-l)}
 .stbl tr:nth-child(even) td{background:var(--grey)}
 .stbl .sb{color:var(--blue);font-weight:700;width:22px;text-align:center}
 .stbl .sk{color:var(--hint);width:145px}
 .stbl .sv2{color:var(--dark);font-weight:500}
 .stbl .sv2.org{color:var(--orange);font-style:italic}
 .stbl .sv2.grn{color:var(--green);font-weight:700}
-.mimg{margin:10px 0 14px;text-align:center;padding:4px;background:transparent}
-.mimg img{max-width:100%;max-height:190px;object-fit:contain}
-.ptbl{width:100%;border-collapse:collapse}
+.mimg{margin:3px 0 5px;text-align:center;padding:0;background:transparent}
+.mimg img{max-width:85%;max-height:162px;object-fit:contain}
+.ptbl{width:100%;border-collapse:collapse;break-inside:avoid;page-break-inside:avoid}
+.ptbl tr{break-inside:avoid;page-break-inside:avoid}
 .ptbl th{background:var(--blue);color:white;padding:8px 12px;font-size:11px;font-weight:600;text-align:left}
 .ptbl th:last-child{text-align:right}
-.ptbl td{padding:7px 12px;font-size:12px;border-bottom:1px solid var(--grey-l)}
+.ptbl td{padding:5px 12px;font-size:12px;border-bottom:1px solid var(--grey-l)}
 .ptbl tr:nth-child(even) td{background:var(--grey)}
 .ptbl td:last-child{text-align:right;font-weight:500}
 .ptbl .rsub td{background:var(--blue-l)!important;color:var(--blue);font-weight:700;font-size:13px;border-top:2px solid var(--blue)}
@@ -196,13 +201,13 @@ body.view-list .list-view{display:block}
 .podmtbl tr:nth-child(even) td:last-child{background:var(--grey)}
 .porg{color:var(--orange);font-style:italic}
 .vsep{border:none;border-top:2px dashed var(--blue-l);margin:22px 0}
-.pnk-footer{display:grid;grid-template-columns:1fr 1fr;padding:16px 24px 20px;
-  border-top:1px solid var(--grey-m);font-size:11px;margin-top:16px;align-items:end}
+.pnk-footer{display:grid;grid-template-columns:1fr 1fr;padding:12px 24px 20px;
+  border-top:1px solid var(--grey-m);font-size:11px;margin-top:10px;align-items:end}
 .pnk-fr{text-align:right;color:var(--hint);display:flex;flex-direction:column;gap:2px;align-items:flex-end}
 .fn{font-weight:700;font-size:13px;color:var(--dark);margin-top:3px}
 @media print{
   body{background:white}
-  .nav,.form-panel,.plbl,.list-view,.pnk-stav{display:none!important}
+  .nav,.form-panel,.plbl,.list-view,.pnk-stav,.guide{display:none!important}
   .layout{display:block!important}
   .preview-panel{padding:0}
   .ponuka{box-shadow:none;max-width:100%;border-radius:0}
@@ -780,7 +785,23 @@ function render(){
       </div>
     </div>
   </div>`;
+  addPageGuides();
 }
+
+/* Prerušovaná čiara na konci každej strany A4 (obsah 297 − 2×10 mm = 277 mm) – len pomôcka v náhľade. */
+function addPageGuides(){
+  const pn=document.querySelector("#out .ponuka"); if(!pn) return;
+  pn.querySelectorAll(".guide").forEach(g=>g.remove());
+  const pg=277*96/25.4, h=pn.scrollHeight;
+  for(let k=1;k*pg<h;k++){
+    const g=document.createElement("div");
+    g.className="guide"; g.style.top=(k*pg)+"px";
+    g.innerHTML="<span>koniec strany "+k+" ↑ / strana "+(k+1)+" ↓</span>";
+    pn.appendChild(g);
+  }
+}
+// Obrázky sa dotiahnu až po vykreslení – po ich načítaní sa výška mení, tak čiary prepočítame.
+document.getElementById("out").addEventListener("load",addPageGuides,true);
 
 /* ================= Názov PDF: {cislo}_{meno}.pdf ================= */
 function sanitizeForFile(s){
