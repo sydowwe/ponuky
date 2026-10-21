@@ -166,7 +166,7 @@ body.view-list .list-view{display:block}
 .mr{text-align:right}
 .pnk-body{padding:10px 24px 18px}
 .vec{background:var(--blue-l);border-left:4px solid var(--blue);padding:7px 14px;
-  margin:8px 0;font-size:13px;font-weight:600;color:var(--orange)}
+  margin:3px 0 8px;font-size:13px;font-weight:600;color:var(--orange)}
 .sttl{font-size:11px;font-weight:700;color:var(--blue);letter-spacing:1.2px;text-transform:uppercase;
   border-bottom:2px solid var(--blue);padding-bottom:5px;margin:12px 0 7px}
 .sv{margin-bottom:10px}
@@ -816,6 +816,7 @@ const PG_FIT_PX=290*96/25.4;   // časť sa pridá na posledný variant len ak s
 function layoutPages(){
   const out=document.getElementById("out"); if(!out) return;
   out.querySelectorAll("#pg_trail,.trail_blk").forEach(e=>e.remove());
+  fitImages();
   const mk=h=>{ const d=document.createElement("div"); d.className="trail_blk"; d.innerHTML=h; return d; };
   const rest=trailParts.slice();
   const pages=out.querySelectorAll(".ponuka");
@@ -835,6 +836,16 @@ function layoutPages(){
     out.appendChild(pg);
   }
   markOverflow();
+}
+/* Ak sa strana s variantom nezmestí na A4 (napr. po pridaní príplatku), obrázok modelu sa po krokoch zmenší
+   (najviac do 90 px), aby cena ostala na tej istej strane. Text a tabuľky sa nemenia. */
+function fitImages(){
+  document.querySelectorAll("#out .ponuka").forEach(p=>{
+    const inn=p.querySelector(".pg-in"), img=p.querySelector(".mimg img"); if(!inn||!img) return;
+    const pad=p.classList.contains("pg-next")?20:0;
+    img.style.maxHeight="";
+    for(let h=154;h>=90&&inn.offsetHeight+pad>PG_FIT_PX;h-=8) img.style.maxHeight=h+"px";
+  });
 }
 function markOverflow(){
   document.querySelectorAll("#out .ponuka").forEach(p=>{
